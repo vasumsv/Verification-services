@@ -40,8 +40,10 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: `http://localhost:${PORT}`,
-        description: 'Development server'
+        url: process.env.NODE_ENV === 'production' 
+          ? 'https://your-vercel-app.vercel.app' 
+          : `http://localhost:${PORT}`,
+        description: process.env.NODE_ENV === 'production' ? 'Production server' : 'Development server'
       }
     ],
     components: {
@@ -132,10 +134,26 @@ const specs = swaggerJsdoc(swaggerOptions);
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
+
+// Swagger UI setup with Vercel-compatible configuration
+const swaggerUiOptions = {
   customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'Twilio OTP API Documentation'
-}));
+  customSiteTitle: 'Twilio OTP API Documentation',
+  explorer: true
+};
+
+// Serve swagger.json separately for Vercel
+app.get('/swagger.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(specs);
+});
+
+// Swagger UI routes - Vercel compatible
+app.get('/api-docs', (req, res, next) => {
+  swaggerUi.setup(specs, swaggerUiOptions)(req, res, next);
+});
+
+app.use('/api-docs', swaggerUi.serve);
 
 // Initialize Twilio client
 const client = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
