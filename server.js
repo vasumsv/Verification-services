@@ -25,6 +25,10 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Middleware
+app.use(cors());
+app.use(express.json());
+
 // Swagger configuration
 const swaggerOptions = {
   definition: {
@@ -32,7 +36,7 @@ const swaggerOptions = {
     info: {
       title: 'Twilio OTP API',
       version: '1.0.0',
-      description: 'A secure Node.js + Express backend that provides SMS OTP verification using Twilio\'s Verify API',
+      description: 'A secure Node.js + Express backend that provides SMS OTP verification using Twilio\'s Verify API for React e-commerce applications.',
       contact: {
         name: 'API Support',
         email: 'support@example.com'
@@ -40,120 +44,29 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: process.env.NODE_ENV === 'production' 
-          ? 'https://your-vercel-app.vercel.app' 
-          : `http://localhost:${PORT}`,
-        description: process.env.NODE_ENV === 'production' ? 'Production server' : 'Development server'
+        url: 'http://localhost:3000',
+        description: 'Development server',
+      },
+      {
+        url: 'https://your-app.vercel.app',
+        description: 'Production server',
       }
     ],
-    components: {
-      schemas: {
-        SendOTPRequest: {
-          type: 'object',
-          required: ['phone'],
-          properties: {
-            phone: {
-              type: 'string',
-              description: 'Phone number in E.164 format',
-              example: '+1234567890'
-            }
-          }
-        },
-        VerifyOTPRequest: {
-          type: 'object',
-          required: ['phone', 'code'],
-          properties: {
-            phone: {
-              type: 'string',
-              description: 'Phone number in E.164 format',
-              example: '+1234567890'
-            },
-            code: {
-              type: 'string',
-              description: '6-digit verification code',
-              example: '123456'
-            }
-          }
-        },
-        SuccessResponse: {
-          type: 'object',
-          properties: {
-            status: {
-              type: 'string',
-              example: 'pending'
-            },
-            message: {
-              type: 'string',
-              example: 'OTP sent successfully'
-            },
-            phone: {
-              type: 'string',
-              example: '+1234567890'
-            }
-          }
-        },
-        ErrorResponse: {
-          type: 'object',
-          properties: {
-            status: {
-              type: 'string',
-              example: 'error'
-            },
-            message: {
-              type: 'string',
-              example: 'Error description'
-            }
-          }
-        },
-        HealthResponse: {
-          type: 'object',
-          properties: {
-            status: {
-              type: 'string',
-              example: 'ok'
-            },
-            message: {
-              type: 'string',
-              example: 'Twilio OTP Service is running'
-            },
-            timestamp: {
-              type: 'string',
-              format: 'date-time',
-              example: '2024-01-15T10:30:00.000Z'
-            }
-          }
-        }
+    tags: [
+      {
+        name: 'OTP',
+        description: 'SMS OTP verification endpoints'
+      },
+      {
+        name: 'Health',
+        description: 'Health check endpoints'
       }
-    }
+    ]
   },
-  apis: ['./server.js']
+  apis: ['./server.js'],
 };
 
-const specs = swaggerJsdoc(swaggerOptions);
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Swagger UI setup with Vercel-compatible configuration
-const swaggerUiOptions = {
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'Twilio OTP API Documentation',
-  explorer: true
-};
-
-// Serve swagger.json separately for Vercel
-app.get('/swagger.json', (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.send(specs);
-});
-
-// Swagger UI routes - Vercel compatible
-app.get('/api-docs', (req, res, next) => {
-  swaggerUi.setup(specs, swaggerUiOptions)(req, res, next);
-});
-
-app.use('/api-docs', swaggerUi.serve);
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 // Initialize Twilio client
 const client = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
@@ -175,13 +88,89 @@ const isValidPhoneNumber = (phone) => {
   return phoneRegex.test(phone);
 };
 
+// Swagger UI setup - MUST be before other routes
+app.use('/api-docs', swaggerUi.serve);
+app.get('/api-docs', swaggerUi.setup(swaggerSpec, {
+  explorer: true,
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: "Twilio OTP API Documentation"
+}));
+
+// Swagger JSON endpoint
+app.get('/swagger.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     SendOTPRequest:
+ *       type: object
+ *       required:
+ *         - phone
+ *       properties:
+ *         phone:
+ *           type: string
+ *           description: Phone number in E.164 format
+ *           example: "+1234567890"
+ *     SendOTPResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           example: "pending"
+ *         message:
+ *           type: string
+ *           example: "OTP sent successfully"
+ *         phone:
+ *           type: string
+ *           example: "+1234567890"
+ *     VerifyOTPRequest:
+ *       type: object
+ *       required:
+ *         - phone
+ *         - code
+ *       properties:
+ *         phone:
+ *           type: string
+ *           description: Phone number in E.164 format
+ *           example: "+1234567890"
+ *         code:
+ *           type: string
+ *           description: 6-digit verification code
+ *           example: "123456"
+ *     VerifyOTPResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           example: "approved"
+ *         message:
+ *           type: string
+ *           example: "Phone number verified successfully"
+ *         phone:
+ *           type: string
+ *           example: "+1234567890"
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           example: "error"
+ *         message:
+ *           type: string
+ *           example: "Error description"
+ */
+
 /**
  * @swagger
  * /send-otp:
  *   post:
  *     summary: Send OTP to phone number
- *     description: Sends a 6-digit OTP code via SMS to the specified phone number using Twilio Verify API
- *     tags: [OTP Verification]
+ *     description: Sends a one-time password (OTP) to the specified phone number via SMS using Twilio Verify API
+ *     tags: [OTP]
  *     requestBody:
  *       required: true
  *       content:
@@ -194,29 +183,19 @@ const isValidPhoneNumber = (phone) => {
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/SuccessResponse'
- *             example:
- *               status: pending
- *               message: OTP sent successfully
- *               phone: "+1234567890"
+ *               $ref: '#/components/schemas/SendOTPResponse'
  *       400:
  *         description: Bad request - Invalid phone number or missing data
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               status: error
- *               message: Invalid phone number format. Please use E.164 format (e.g., +1234567890)
  *       429:
  *         description: Too many requests
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               status: error
- *               message: Too many requests. Please try again later.
  *       500:
  *         description: Internal server error
  *         content:
@@ -224,7 +203,6 @@ const isValidPhoneNumber = (phone) => {
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-// POST /send-otp - Send OTP to phone number
 app.post('/send-otp', async (req, res) => {
   try {
     const { phone } = req.body;
@@ -292,8 +270,8 @@ app.post('/send-otp', async (req, res) => {
  * /verify-otp:
  *   post:
  *     summary: Verify OTP code
- *     description: Verifies the 6-digit OTP code sent to the phone number
- *     tags: [OTP Verification]
+ *     description: Verifies the OTP code sent to the phone number
+ *     tags: [OTP]
  *     requestBody:
  *       required: true
  *       content:
@@ -302,42 +280,29 @@ app.post('/send-otp', async (req, res) => {
  *             $ref: '#/components/schemas/VerifyOTPRequest'
  *     responses:
  *       200:
- *         description: OTP verified successfully
+ *         description: Phone number verified successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/SuccessResponse'
- *             example:
- *               status: approved
- *               message: Phone number verified successfully
- *               phone: "+1234567890"
+ *               $ref: '#/components/schemas/VerifyOTPResponse'
  *       400:
- *         description: Bad request - Invalid code, phone number, or verification failed
+ *         description: Bad request - Invalid code or phone number
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               status: error
- *               message: Invalid or expired verification code
  *       404:
  *         description: Verification not found or expired
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               status: error
- *               message: Verification not found or expired
  *       429:
  *         description: Max verification attempts reached
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               status: error
- *               message: Max verification attempts reached
  *       500:
  *         description: Internal server error
  *         content:
@@ -345,7 +310,6 @@ app.post('/send-otp', async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-// POST /verify-otp - Verify OTP code
 app.post('/verify-otp', async (req, res) => {
   try {
     const { phone, code } = req.body;
@@ -428,21 +392,27 @@ app.post('/verify-otp', async (req, res) => {
  * /health:
  *   get:
  *     summary: Health check endpoint
- *     description: Returns the current status of the API service
- *     tags: [Health Check]
+ *     description: Returns the health status of the API service
+ *     tags: [Health]
  *     responses:
  *       200:
- *         description: Service is running normally
+ *         description: Service is healthy
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/HealthResponse'
- *             example:
- *               status: ok
- *               message: Twilio OTP Service is running
- *               timestamp: "2024-01-15T10:30:00.000Z"
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "ok"
+ *                 message:
+ *                   type: string
+ *                   example: "Twilio OTP Service is running"
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2024-01-15T10:30:00.000Z"
  */
-// Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
