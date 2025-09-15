@@ -1,29 +1,24 @@
 {
-  "name": "node-starter",
-  "private": true,
+  "name": "otp-backend",
   "version": "1.0.0",
-  "description": "Secure Node.js Express backend with Twilio SMS OTP verification",
-  "main": "server.js",
+  "description": "OTP API with Swagger UI documentation",
+  "main": "api/index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node api/index.js",
+    "dev": "node api/index.js"
   },
   "dependencies": {
-    "cors": "^2.8.5",
     "dotenv": "^17.2.2",
-    "express": "^5.1.0",
+    "express": "^4.18.2",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1",
-    "twilio": "^5.9.0"
+    "swagger-ui-express": "^5.0.0",
+    "twilio": "^4.16.0"
   },
   "keywords": [
-    "nodejs",
-    "express",
-    "twilio",
     "otp",
-    "sms",
-    "verification"
+    "twilio",
+    "swagger",
+    "api"
   ],
   "author": "",
   "license": "MIT"

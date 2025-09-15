@@ -1,171 +1,138 @@
-# Twilio SMS OTP Backend
+# OTP Backend API with Swagger UI
 
-A secure Node.js + Express backend that provides SMS OTP verification using Twilio's Verify API for React e-commerce applications.
+A complete OTP (One-Time Password) backend service built with Express.js, Twilio Verify, and Swagger UI documentation.
 
-## Features
+## 🚀 Features
 
-- 🔐 Secure OTP generation and verification
-- 📱 SMS delivery via Twilio Verify API
-- ✅ Input validation and error handling
-- 🌐 CORS enabled for frontend integration
-- 🛡️ Rate limiting protection via Twilio
-- 📋 Comprehensive error responses
+- **Send OTP**: Send 6-digit OTP codes via SMS using Twilio Verify
+- **Verify OTP**: Verify OTP codes with comprehensive error handling
+- **Swagger UI**: Interactive API documentation at `/docs`
+- **Vercel Ready**: Configured for easy deployment to Vercel
+- **Error Handling**: Comprehensive error handling with meaningful messages
+- **CORS Support**: Cross-origin requests enabled
+- **Input Validation**: Phone number and OTP format validation
 
-## Quick Start
+## 📋 Prerequisites
 
-### 1. Install Dependencies
+1. **Twilio Account**: Sign up at [twilio.com](https://www.twilio.com/)
+2. **Twilio Verify Service**: Create one at [Twilio Console](https://console.twilio.com/us1/develop/verify/services)
+
+## 🛠️ Setup
+
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Environment Variables**:
+   Copy `.env.example` to `.env` and fill in your Twilio credentials:
+   ```bash
+   cp .env.example .env
+   ```
+
+3. **Get Twilio Credentials**:
+   - `TWILIO_ACCOUNT_SID`: From [Twilio Console](https://console.twilio.com/)
+   - `TWILIO_AUTH_TOKEN`: From [Twilio Console](https://console.twilio.com/)
+   - `TWILIO_VERIFY_SERVICE_SID`: Create a Verify Service first
+
+## 🏃‍♂️ Running Locally
+
 ```bash
-npm install
+npm run dev
 ```
 
-### 2. Set up Environment Variables
-Copy `.env.example` to `.env` and fill in your Twilio credentials:
+The server will start on `http://localhost:3000`
 
-```bash
-cp .env.example .env
-```
+- **API Documentation**: http://localhost:3000/docs
+- **Health Check**: http://localhost:3000/health
 
-Get your credentials from [Twilio Console](https://console.twilio.com/):
-- **TWILIO_SID**: Your Account SID
-- **TWILIO_AUTH_TOKEN**: Your Auth Token  
-- **TWILIO_VERIFY_SID**: Your Verify Service SID (create one in Verify Services)
+## 📡 API Endpoints
 
-### 3. Start the Server
-```bash
-npm start
-# or
-node server.js
-```
+### POST /send-otp
+Send OTP to a phone number.
 
-Server will run on `http://localhost:5000`
-
-## API Endpoints
-
-### Send OTP
-```http
-POST /send-otp
-Content-Type: application/json
-
-{
-  "phone": "+1234567890"
-}
-```
-
-**Response:**
+**Request Body**:
 ```json
 {
-  "status": "pending",
-  "message": "OTP sent successfully",
-  "phone": "+1234567890"
+  "phone": "+919876543210"
 }
 ```
 
-### Verify OTP
-```http
-POST /verify-otp
-Content-Type: application/json
-
+**Response**:
+```json
 {
-  "phone": "+1234567890",
+  "success": true,
+  "status": "pending",
+  "message": "OTP sent successfully"
+}
+```
+
+### POST /verify-otp
+Verify the OTP code.
+
+**Request Body**:
+```json
+{
+  "phone": "+919876543210",
   "code": "123456"
 }
 ```
 
-**Response (Success):**
+**Response**:
 ```json
 {
-  "status": "approved",
-  "message": "Phone number verified successfully",
-  "phone": "+1234567890"
+  "success": true,
+  "message": "OTP verified successfully"
 }
 ```
 
-**Response (Error):**
-```json
-{
-  "status": "error",
-  "message": "Invalid or expired verification code"
-}
-```
+## 🚀 Deploy to Vercel
 
-### Health Check
-```http
-GET /health
-```
+1. **Install Vercel CLI**:
+   ```bash
+   npm i -g vercel
+   ```
 
-## Frontend Integration Example
+2. **Deploy**:
+   ```bash
+   vercel
+   ```
 
-```javascript
-// Send OTP
-const sendOTP = async (phoneNumber) => {
-  try {
-    const response = await fetch('http://localhost:5000/send-otp', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ phone: phoneNumber }),
-    });
-    
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error sending OTP:', error);
-  }
-};
+3. **Set Environment Variables** in Vercel Dashboard:
+   - `TWILIO_ACCOUNT_SID`
+   - `TWILIO_AUTH_TOKEN`
+   - `TWILIO_VERIFY_SERVICE_SID`
 
-// Verify OTP
-const verifyOTP = async (phoneNumber, code) => {
-  try {
-    const response = await fetch('http://localhost:5000/verify-otp', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ phone: phoneNumber, code }),
-    });
-    
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error verifying OTP:', error);
-  }
-};
-```
+## 📚 Testing with Swagger UI
 
-## Phone Number Format
+1. Open `/docs` in your browser
+2. Try the "Send OTP" endpoint with your phone number
+3. Check your phone for the OTP
+4. Use the "Verify OTP" endpoint to verify the code
+
+## 🔧 Error Handling
+
+The API includes comprehensive error handling for:
+- Invalid phone number formats
+- Missing Twilio credentials
+- Rate limiting
+- Invalid OTP codes
+- Expired verification attempts
+
+## 📱 Phone Number Format
 
 Use E.164 format for phone numbers:
-- ✅ `+1234567890` (US)
-- ✅ `+447911123456` (UK)
 - ✅ `+919876543210` (India)
-- ❌ `1234567890` (missing country code)
-- ❌ `(123) 456-7890` (formatted)
+- ✅ `+1234567890` (US)
+- ❌ `9876543210` (Missing country code)
 
-## Error Handling
+## 🛡️ Security Features
 
-The API handles various error scenarios:
-- Invalid phone number format
-- Missing required fields
-- Twilio API errors (invalid phone, rate limits)
-- Expired or invalid verification codes
-- Network and server errors
+- Input validation for phone numbers and OTP codes
+- Environment variable protection
+- CORS configuration
+- Error message sanitization in production
 
-## Security Features
+## 📄 License
 
-- Input validation for phone numbers and codes
-- Rate limiting via Twilio's built-in protection
-- Environment variable protection for sensitive data
-- Comprehensive error handling without exposing internals
-- CORS configuration for controlled access
-
-## Dependencies
-
-- **express**: Web framework
-- **twilio**: Twilio SDK for SMS/Verify API
-- **dotenv**: Environment variable management
-- **cors**: Cross-origin resource sharing
-
-## License
-
-MIT
+MIT License - feel free to use this in your projects!
