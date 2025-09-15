@@ -15,7 +15,7 @@ const options = {
         description: "Development server"
       },
       {
-        url: "https://your-project-name.vercel.app",
+        url: "https://verification-services-2pe9n9sqy-vasus-projects-b361a7b7.vercel.app",
         description: "Production server"
       }
     ],
