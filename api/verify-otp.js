@@ -1,7 +1,6 @@
 const app = require("./_app");
+const verifyOtpHandler = require("./verify-otp-impl");
 
-app.post("/verify-otp", async (req, res) => {
-  res.json({ success: true, message: "OTP verified" });
-});
+app.post("/api/verify-otp", verifyOtpHandler);
 
 module.exports = (req, res) => app(req, res);

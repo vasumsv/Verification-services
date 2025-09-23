@@ -1,7 +1,6 @@
 const app = require("./_app");
+const sendOtpHandler = require("./send-otp-impl");
 
-app.post("/send-otp", async (req, res) => {
-  res.json({ success: true, message: "OTP sent" });
-});
+app.post("/api/send-otp", sendOtpHandler);
 
 module.exports = (req, res) => app(req, res);

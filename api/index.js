@@ -1,8 +1,9 @@
 const app = require("./_app");
 
-app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
+// health check
+app.get("/api/health", (req, res) => {
+  res.json({ status: "healthy", timestamp: new Date().toISOString() });
 });
 
-// ✅ Export handler for Vercel
+// 🚀 Export as serverless function
 module.exports = (req, res) => app(req, res);

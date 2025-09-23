@@ -1,37 +1,43 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 
 const app = express();
+app.use(express.json());
 
-// Allowed origins
+// ✅ Allow localhost + your preview domain + prod domain
 const allowedOrigins = [
-  "http://localhost:5173",
-  "https://your-frontend-domain.com"
+  "https://verification-services-phi.vercel.app",
+  /\.local-credentialless\.webcontainer-api\.io$/,
+  /^http:\/\/localhost(:\d+)?$/,
+  /^http:\/\/127\.0\.0\.1(:\d+)?$/
 ];
 
-// Remove Vercel’s default CORS header
-app.use((req, res, next) => {
-  res.removeHeader("Access-Control-Allow-Origin");
-  next();
-});
-
-// CORS setup
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin) return callback(null, true); // allow curl/Postman
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      return callback(new Error("Not allowed by CORS"));
+      if (!origin) return callback(null, true);
+
+      if (
+        allowedOrigins.some((o) =>
+          o instanceof RegExp ? o.test(origin) : o === origin
+        )
+      ) {
+        return callback(null, origin);
+      }
+
+      return callback(new Error("Not allowed by CORS: " + origin));
     },
     credentials: true,
     methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
+    allowedHeaders: [
+      "Origin",
+      "X-Requested-With",
+      "Content-Type",
+      "Accept",
+      "Authorization"
+    ]
   })
 );
-
-// Preflight support
-app.options("*", cors());
-
-app.use(express.json());
 
 module.exports = app;
