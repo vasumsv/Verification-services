@@ -1,8 +1,7 @@
-const app = require("./index");
+const app = require("./_app");
 
 app.post("/send-otp", async (req, res) => {
-  // TODO: integrate Twilio here
   res.json({ success: true, message: "OTP sent" });
 });
 
-module.exports = app;
+module.exports = (req, res) => app(req, res);
