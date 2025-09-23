@@ -1,11 +1,46 @@
 {
   "version": 2,
   "builds": [
-    { "src": "api/*.js", "use": "@vercel/node" }
+    { 
+      "src": "api/index.js", 
+      "use": "@vercel/node" 
+    },
+    { 
+      "src": "api/*.js", 
+      "use": "@vercel/node" 
+    }
   ],
   "routes": [
-    { "src": "/api/health", "dest": "api/index.js" },
-    { "src": "/api/send-otp", "dest": "api/send-otp.js" },
-    { "src": "/api/verify-otp", "dest": "api/verify-otp.js" }
-  ]
+    { 
+      "src": "/", 
+      "dest": "/api/index.js" 
+    },
+    { 
+      "src": "/docs", 
+      "dest": "/api/index.js" 
+    },
+    { 
+      "src": "/docs/(.*)", 
+      "dest": "/api/index.js" 
+    },
+    { 
+      "src": "/health", 
+      "dest": "/api/index.js" 
+    },
+    { 
+      "src": "/send-otp", 
+      "dest": "/api/send-otp.js" 
+    },
+    { 
+      "src": "/verify-otp", 
+      "dest": "/api/verify-otp.js" 
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "api/*.js": {
+      "maxDuration": 30
+  }
 }
