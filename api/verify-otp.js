@@ -1,8 +1,17 @@
-import twilio from "twilio";
+const twilio = require("twilio");
 
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Only POST method allowed" });
   }
@@ -27,4 +36,4 @@ export default async function handler(req, res) {
     console.error("Error verifying OTP:", error);
     res.status(500).json({ error: "Failed to verify OTP", details: error.message });
   }
-}
+};
